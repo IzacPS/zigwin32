@@ -12932,13 +12932,20 @@ _,
     // getting the tag name. This is because the enum has over 3,000 values which
     // results in needing over 100Kb to store them as strings.
     // Instead, we use FormatMessage to access a string for each error.
-    pub fn format(
+    pub const format = if (@import("builtin").zig_version.order(.{ .major = 0, .minor = 15, .patch = 0 }) == .lt)
+        formatLegacy
+    else
+        formatNew;
+    fn formatLegacy(
         self: WIN32_ERROR,
         comptime fmt: []const u8,
         options: @import("std").fmt.FormatOptions,
         writer: anytype,
     ) !void {
         try @import("zig.zig").fmtError(@intFromEnum(self)).format(fmt, options, writer);
+    }
+    fn formatNew(self: WIN32_ERROR, writer: *@import("std").Io.Writer) @import("std").Io.Writer.Error!void {
+        try @import("zig.zig").fmtError(@intFromEnum(self)).format(writer);
     }
 };
 pub const NO_ERROR = WIN32_ERROR.NO_ERROR;

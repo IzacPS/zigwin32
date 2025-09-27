@@ -3621,7 +3621,11 @@ _,
             else => null,
         };
     }
-    pub fn format(
+    pub const format = if (@import("builtin").zig_version.order(.{ .major = 0, .minor = 15, .patch = 0 }) == .lt)
+        formatLegacy
+    else
+        formatNew;
+    fn formatLegacy(
         self: WINDOW_LONG_PTR_INDEX,
         comptime fmt: []const u8,
         options: @import("std").fmt.FormatOptions,
@@ -3629,6 +3633,9 @@ _,
     ) !void {
         _ = fmt;
         _ = options;
+        try writer.print("{s}({})", .{self.value.tagName() orelse "?", @intFromEnum(self.value)});
+    }
+    fn formatNew(self: WINDOW_LONG_PTR_INDEX, writer: *@import("std").Io.Writer) @import("std").Io.Writer.Error!void {
         try writer.print("{s}({})", .{self.value.tagName() orelse "?", @intFromEnum(self.value)});
     }
 };
